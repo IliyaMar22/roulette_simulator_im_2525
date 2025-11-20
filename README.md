@@ -2,6 +2,12 @@
 
 A sophisticated European Roulette simulator and statistical analysis web application that runs large-scale simulations (10K, 150K, 350K, 500K, and 1M spins) to generate comprehensive statistics and provide "next number" predictions based on historical patterns.
 
+## 🚀 Live Demo
+
+**[Try it now on Railway](https://roulettesimulatorim2525-production.up.railway.app/)** 🎰
+
+> Fully responsive • Works on mobile, tablet, and desktop
+
 ## Features
 
 ### 🎰 Simulation Engine
@@ -102,27 +108,22 @@ roulette-simulator/
 
 ## Deployment to Railway
 
-### Option 1: Using Docker (Recommended)
+This project is configured to deploy automatically using Docker:
 
-1. Push your code to a Git repository
-2. Connect your repository to Railway
-3. Railway will automatically detect the Dockerfile and deploy
+1. **Connect Repository**: Link your GitHub repository to Railway
+2. **Automatic Detection**: Railway will detect the `Dockerfile` automatically
+3. **Build & Deploy**: The app builds in two stages:
+   - Stage 1: Node.js builds the React app
+   - Stage 2: Nginx serves the static files
+4. **Generate Domain**: Set target port to `8080` and generate a public domain
+5. **Done!** Your app will be live in ~3-5 minutes
 
-### Option 2: Using Nixpacks
+### Configuration
 
-1. Push your code to a Git repository
-2. Connect your repository to Railway
-3. Railway will use the `nixpacks.toml` configuration
-
-### Option 3: Using Railway.json
-
-1. Push your code to a Git repository
-2. Connect your repository to Railway
-3. Railway will use the `railway.json` configuration
-
-### Environment Variables
-
-No environment variables are required for basic functionality.
+- **Port**: 8080 (configured in Dockerfile and nginx.conf)
+- **Build**: Multi-stage Docker build (Node → Nginx)
+- **Nginx**: Optimized for SPA routing with gzip compression
+- **No environment variables required** for basic functionality
 
 ## Usage
 
