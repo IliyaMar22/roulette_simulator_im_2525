@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { BarChart, Bar, PieChart, Pie, Cell, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 const RED_NUMBERS = [1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36];
@@ -6,34 +6,39 @@ const VOISINS = [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25];
 const TIERS = [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33];
 const ORPHELINS = [17, 34, 6, 1, 20, 14, 31, 9];
 
-const styles = {
-  app: { minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)', color: '#fff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: '20px' },
-  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '30px', padding: '20px', background: 'rgba(30, 41, 59, 0.8)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)' },
-  logo: { display: 'flex', alignItems: 'center', gap: '15px' },
-  logoIcon: { width: '50px', height: '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)' },
-  title: { fontSize: '28px', fontWeight: 'bold', background: 'linear-gradient(90deg, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 },
-  subtitle: { fontSize: '12px', color: '#94a3b8', margin: 0 },
-  card: { background: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', padding: '24px', marginBottom: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' },
-  cardTitle: { fontSize: '18px', fontWeight: '600', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '10px' },
-  grid2: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '24px' },
-  grid5: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '10px', marginBottom: '20px' },
-  simBtn: (active: boolean) => ({ padding: '14px 20px', borderRadius: '12px', border: 'none', fontWeight: '600', cursor: 'pointer', transition: 'all 0.3s', background: active ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#374151', color: active ? '#fff' : '#9ca3af', transform: active ? 'scale(1.05)' : 'scale(1)', boxShadow: active ? '0 4px 15px rgba(245, 158, 11, 0.4)' : 'none' }),
-  runBtn: (disabled: boolean) => ({ width: '100%', padding: '16px', borderRadius: '12px', border: 'none', fontWeight: 'bold', fontSize: '16px', cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#4b5563' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', boxShadow: disabled ? 'none' : '0 4px 20px rgba(245, 158, 11, 0.4)' }),
-  progressBar: { marginTop: '16px', background: '#374151', borderRadius: '10px', height: '12px', overflow: 'hidden' },
+const getResponsiveStyles = (windowWidth: number) => {
+  const isMobile = windowWidth < 768;
+  const isTablet = windowWidth >= 768 && windowWidth < 1024;
+
+  return {
+  app: { minHeight: '100vh', background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%)', color: '#fff', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif', padding: isMobile ? '10px' : '20px', maxWidth: '100%', overflowX: 'hidden' as const },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: isMobile ? '15px' : '30px', padding: isMobile ? '12px' : '20px', background: 'rgba(30, 41, 59, 0.8)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', flexWrap: 'wrap' as const },
+  logo: { display: 'flex', alignItems: 'center', gap: isMobile ? '8px' : '15px' },
+  logoIcon: { width: isMobile ? '35px' : '50px', height: isMobile ? '35px' : '50px', borderRadius: '50%', background: 'linear-gradient(135deg, #f59e0b, #d97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: isMobile ? '18px' : '24px', boxShadow: '0 4px 15px rgba(245, 158, 11, 0.4)' },
+  title: { fontSize: isMobile ? '18px' : isTablet ? '22px' : '28px', fontWeight: 'bold', background: 'linear-gradient(90deg, #fbbf24, #f59e0b)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 },
+  subtitle: { fontSize: isMobile ? '10px' : '12px', color: '#94a3b8', margin: 0 },
+  card: { background: 'rgba(30, 41, 59, 0.6)', backdropFilter: 'blur(10px)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', padding: isMobile ? '16px' : '24px', marginBottom: isMobile ? '16px' : '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.3)' },
+  cardTitle: { fontSize: isMobile ? '16px' : '18px', fontWeight: '600', marginBottom: isMobile ? '12px' : '20px', display: 'flex', alignItems: 'center', gap: '10px' },
+  grid2: { display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '16px' : '24px' },
+  grid5: { display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : isTablet ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: isMobile ? '8px' : '10px', marginBottom: isMobile ? '12px' : '20px' },
+  simBtn: (active: boolean) => ({ padding: isMobile ? '12px 16px' : '14px 20px', borderRadius: '12px', border: 'none', fontWeight: '600', fontSize: isMobile ? '13px' : '14px', cursor: 'pointer', transition: 'all 0.3s', background: active ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#374151', color: active ? '#fff' : '#9ca3af', transform: active ? 'scale(1.05)' : 'scale(1)', boxShadow: active ? '0 4px 15px rgba(245, 158, 11, 0.4)' : 'none' }),
+  runBtn: (disabled: boolean) => ({ width: '100%', padding: isMobile ? '14px' : '16px', borderRadius: '12px', border: 'none', fontWeight: 'bold', fontSize: isMobile ? '14px' : '16px', cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#4b5563' : 'linear-gradient(135deg, #f59e0b, #d97706)', color: '#fff', boxShadow: disabled ? 'none' : '0 4px 20px rgba(245, 158, 11, 0.4)' }),
+  progressBar: { marginTop: '16px', background: '#374151', borderRadius: '10px', height: isMobile ? '10px' : '12px', overflow: 'hidden' },
   progressFill: (p: number) => ({ height: '100%', background: 'linear-gradient(90deg, #f59e0b, #fbbf24)', transition: 'width 0.3s', width: `${p}%` }),
-  numberGrid: { display: 'grid', gridTemplateColumns: 'repeat(10, 1fr)', gap: '8px', marginBottom: '20px' },
-  numberBtn: (num: number, selected: boolean) => ({ aspectRatio: '1', borderRadius: '10px', border: selected ? '3px solid #fbbf24' : 'none', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer', transition: 'all 0.2s', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', transform: selected ? 'scale(1.15)' : 'scale(1)', boxShadow: selected ? '0 0 15px rgba(251, 191, 36, 0.6)' : '0 2px 8px rgba(0,0,0,0.3)' }),
-  predBtn: (disabled: boolean) => ({ width: '100%', padding: '14px', borderRadius: '12px', border: 'none', fontWeight: 'bold', cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#4b5563' : 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', boxShadow: disabled ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.4)' }),
-  predResult: { background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))', border: '1px solid rgba(245, 158, 11, 0.4)', borderRadius: '16px', padding: '24px', textAlign: 'center' as const },
-  predNumber: (num: number) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', fontSize: '32px', fontWeight: 'bold', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', boxShadow: '0 8px 25px rgba(0,0,0,0.4)' }),
-  historyChip: (num: number) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '10px', fontWeight: 'bold', fontSize: '14px', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }),
-  tabs: { display: 'flex', gap: '10px', marginBottom: '24px', flexWrap: 'wrap' as const },
-  tab: (active: boolean) => ({ padding: '12px 24px', borderRadius: '12px', border: 'none', fontWeight: '600', cursor: 'pointer', background: active ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#374151', color: active ? '#fff' : '#9ca3af', boxShadow: active ? '0 4px 15px rgba(245, 158, 11, 0.3)' : 'none' }),
-  statBar: { background: '#374151', borderRadius: '8px', height: '10px', overflow: 'hidden', marginTop: '8px' },
+  numberGrid: { display: 'grid', gridTemplateColumns: isMobile ? 'repeat(5, 1fr)' : isTablet ? 'repeat(7, 1fr)' : 'repeat(10, 1fr)', gap: isMobile ? '6px' : '8px', marginBottom: isMobile ? '12px' : '20px' },
+  numberBtn: (num: number, selected: boolean) => ({ aspectRatio: '1', borderRadius: isMobile ? '8px' : '10px', border: selected ? '3px solid #fbbf24' : 'none', fontWeight: 'bold', fontSize: isMobile ? '12px' : '14px', cursor: 'pointer', transition: 'all 0.2s', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', transform: selected ? 'scale(1.15)' : 'scale(1)', boxShadow: selected ? '0 0 15px rgba(251, 191, 36, 0.6)' : '0 2px 8px rgba(0,0,0,0.3)', minWidth: isMobile ? '32px' : 'auto', minHeight: isMobile ? '32px' : 'auto' }),
+  predBtn: (disabled: boolean) => ({ width: '100%', padding: isMobile ? '12px' : '14px', borderRadius: '12px', border: 'none', fontWeight: 'bold', fontSize: isMobile ? '13px' : '14px', cursor: disabled ? 'not-allowed' : 'pointer', background: disabled ? '#4b5563' : 'linear-gradient(135deg, #10b981, #059669)', color: '#fff', boxShadow: disabled ? 'none' : '0 4px 15px rgba(16, 185, 129, 0.4)' }),
+  predResult: { background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(217, 119, 6, 0.15))', border: '1px solid rgba(245, 158, 11, 0.4)', borderRadius: '16px', padding: isMobile ? '16px' : '24px', textAlign: 'center' as const },
+  predNumber: (num: number) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? '60px' : '80px', height: isMobile ? '60px' : '80px', borderRadius: '50%', fontSize: isMobile ? '24px' : '32px', fontWeight: 'bold', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', boxShadow: '0 8px 25px rgba(0,0,0,0.4)' }),
+  historyChip: (num: number) => ({ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', borderRadius: isMobile ? '8px' : '10px', fontWeight: 'bold', fontSize: isMobile ? '12px' : '14px', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', boxShadow: '0 2px 8px rgba(0,0,0,0.3)' }),
+  tabs: { display: 'flex', gap: isMobile ? '6px' : '10px', marginBottom: isMobile ? '16px' : '24px', flexWrap: 'wrap' as const, overflowX: 'auto' as const },
+  tab: (active: boolean) => ({ padding: isMobile ? '10px 16px' : '12px 24px', borderRadius: '12px', border: 'none', fontWeight: '600', fontSize: isMobile ? '13px' : '14px', cursor: 'pointer', background: active ? 'linear-gradient(135deg, #f59e0b, #d97706)' : '#374151', color: active ? '#fff' : '#9ca3af', boxShadow: active ? '0 4px 15px rgba(245, 158, 11, 0.3)' : 'none', whiteSpace: 'nowrap' as const }),
+  statBar: { background: '#374151', borderRadius: '8px', height: isMobile ? '8px' : '10px', overflow: 'hidden', marginTop: '8px' },
   statFill: (color: string, pct: number) => ({ height: '100%', background: color, width: `${pct}%`, transition: 'width 0.5s' }),
-  disclaimer: { background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '16px', fontSize: '14px', color: '#fcd34d', marginTop: '24px' },
-  empty: { height: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280' },
-  smallChip: (num: number) => ({ padding: '8px 14px', borderRadius: '8px', fontWeight: 'bold', fontSize: '13px', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', display: 'inline-block', margin: '3px' })
+  disclaimer: { background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: isMobile ? '12px' : '16px', fontSize: isMobile ? '12px' : '14px', color: '#fcd34d', marginTop: isMobile ? '16px' : '24px' },
+  empty: { height: isMobile ? '150px' : '200px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: isMobile ? '13px' : '14px', padding: '20px', textAlign: 'center' as const },
+  smallChip: (num: number) => ({ padding: isMobile ? '6px 10px' : '8px 14px', borderRadius: '8px', fontWeight: 'bold', fontSize: isMobile ? '11px' : '13px', background: num === 0 ? '#10b981' : RED_NUMBERS.includes(num) ? '#dc2626' : '#1f2937', color: '#fff', display: 'inline-block', margin: '3px' })
+  };
 };
 
 export default function RouletteSimulator() {
@@ -45,6 +50,17 @@ export default function RouletteSimulator() {
   const [stats, setStats] = useState({ numbers: {} as Record<number, number>, colors: { red: 0, black: 0, green: 0 }, dozens: { first: 0, second: 0, third: 0, zero: 0 }, columns: { col1: 0, col2: 0, col3: 0 }, highLow: { low: 0, high: 0 }, oddEven: { odd: 0, even: 0 }, sectors: { voisins: 0, tiers: 0, orphelins: 0 } });
   const [prediction, setPrediction] = useState<{ number: number; confidence: number; neighbors: number[]; hotNumbers: number[] } | null>(null);
   const [activeTab, setActiveTab] = useState('overview');
+  const [windowWidth, setWindowWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  // Handle window resize for responsive layout
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Get responsive styles based on current window width
+  const styles = useMemo(() => getResponsiveStyles(windowWidth), [windowWidth]);
 
   const spinWheel = () => Math.floor(Math.random() * 37);
 
